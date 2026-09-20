@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Font metric mismatch, failing</title>
+  <style>
+    /* swap fixed the invisible text from example 04 and introduced this.
+       Georgia and Gazette do not occupy the same space, so at the moment the
+       web font arrives every line of the page rewraps and everything below
+       the first paragraph moves. It is a single shift, but it lands late and
+       it affects the whole document. */
+    @font-face {
+      font-family: 'Gazette';
+      src: url('/assets/gazette.woff2') format('woff2');
+      font-display: swap;
+    }
+    body { font-family: 'Gazette', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>

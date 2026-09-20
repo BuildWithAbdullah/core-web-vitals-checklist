@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Font metric mismatch, corrected</title>
+  <style>
+    @font-face {
+      font-family: 'Gazette';
+      src: url('/assets/gazette.woff2') format('woff2');
+      font-display: swap;
+    }
+
+    /* A local font declared with overrides that make it occupy the same
+       space as the web font. The swap still happens and the letterforms
+       still change, but the line boxes do not move, so the shift score is
+       close to zero.
+
+       The percentages are measured, not guessed. Compare the two fonts at
+       the same size and read the real ratios off the rendered text. Numbers
+       copied from another project are the usual reason this fix only half
+       works. */
+    @font-face {
+      font-family: 'Gazette fallback';
+      src: local('Georgia');
+      size-adjust: 103%;
+      ascent-override: 92%;
+      descent-override: 22%;
+      line-gap-override: 0%;
+    }
+
+    body { font-family: 'Gazette', 'Gazette fallback', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>
