@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Import chain, failing</title>
+  <style>
+    /* Two render blocking round trips, in series. The browser cannot know
+       theme.css exists until base.css has arrived and been parsed, so the
+       second request starts only when the first finishes. Two 200ms round
+       trips become 400ms of render delay instead of 200ms. */
+    @import url('/assets/base.css');
+    @import url('/assets/theme.css');
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+</body>
+</html>
