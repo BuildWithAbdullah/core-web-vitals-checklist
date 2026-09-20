@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Unreserved embed, failing</title>
+  <style>
+    .booking { border: 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>Reserve a table</h1>
+  <!-- The slot is zero pixels tall until a third party server responds. The
+       response time is not yours to control, which means the shift happens
+       at an unpredictable moment, often after the visitor has started
+       reading the text below it. -->
+  <iframe class="booking" src="https://bookings.example/widget" title="Booking form"></iframe>
+  <p>Groups of eight or more, please call.</p>
+</body>
+</html>
