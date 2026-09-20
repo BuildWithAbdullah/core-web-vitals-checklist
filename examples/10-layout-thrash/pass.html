@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Layout thrash, corrected</title>
+  <style>
+    .tile { padding: 12px; border: 1px solid #d1d5db; }
+  </style>
+</head>
+<body>
+  <button id="equalise" type="button">Equalise tiles</button>
+  <div id="grid">
+    <div class="tile">One line</div>
+    <div class="tile">A rather longer piece of text that wraps onto two lines</div>
+    <div class="tile">One line</div>
+  </div>
+
+  <script>
+    // All the reads, then all the writes. One layout instead of n. The
+    // writes go in an animation frame callback so they land with the paint
+    // rather than in front of it.
+    document.getElementById('equalise').addEventListener('click', () => {
+      const tiles = Array.from(document.querySelectorAll('.tile'));
+
+      const heights = [];
+      for (const tile of tiles) {
+        heights.push(tile.offsetHeight);
+      }
+
+      requestAnimationFrame(() => {
+        tiles.forEach((tile, index) => {
+          tile.style.minHeight = (heights[index] + 8) + 'px';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Layout thrash, failing</title>
+  <style>
+    .tile { padding: 12px; border: 1px solid #d1d5db; }
+  </style>
+</head>
+<body>
+  <button id="equalise" type="button">Equalise tiles</button>
+  <div id="grid">
+    <div class="tile">One line</div>
+    <div class="tile">A rather longer piece of text that wraps onto two lines</div>
+    <div class="tile">One line</div>
+  </div>
+
+  <script>
+    // Read, write, read, write. Each read after a write forces the browser to
+    // recalculate layout before it can answer, so a loop over n tiles causes
+    // n synchronous layouts. The cost is invisible at three tiles and
+    // dominates the interaction at three hundred.
+    document.getElementById('equalise').addEventListener('click', () => {
+      const tiles = document.querySelectorAll('.tile');
+      for (const tile of tiles) {
+        const height = tile.offsetHeight;
+        tile.style.minHeight = (height + 8) + 'px';
+      }
+    });
+  </script>
+</body>
+</html>
