@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Injected banner, failing</title>
+  <style>
+    .promo { background: #1f2937; color: #fff; padding: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+
+  <script>
+    // The page has already painted. Inserting a node at the top of the body
+    // pushes every pixel of content down, usually while somebody is reading
+    // it. Consent banners, promotion bars and geolocation notices are the
+    // three that turn up again and again.
+    const promo = document.createElement('div');
+    promo.className = 'promo';
+    promo.textContent = 'Two for one on Wednesdays';
+    document.body.prepend(promo);
+  </script>
+</body>
+</html>
