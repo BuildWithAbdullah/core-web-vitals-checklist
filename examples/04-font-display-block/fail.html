@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Blocking font, failing</title>
+  <style>
+    /* No font-display descriptor means the browser uses its default block
+       period, which is up to three seconds of invisible text. When the
+       largest element on the page is a heading, and on most content
+       templates it is, that invisible text is the LCP element and the
+       metric records the whole wait. */
+    @font-face {
+      font-family: 'Gazette';
+      src: url('/assets/gazette.woff2') format('woff2');
+      font-weight: 400;
+    }
+    body { font-family: 'Gazette', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>

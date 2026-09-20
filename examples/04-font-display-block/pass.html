@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Blocking font, corrected</title>
+  <link rel="preload" as="font" type="font/woff2"
+        href="/assets/gazette.woff2" crossorigin>
+  <style>
+    /* swap paints the fallback immediately, so text is never invisible and
+       LCP stops waiting on the font file. */
+    @font-face {
+      font-family: 'Gazette';
+      src: url('/assets/gazette.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+    }
+
+    /* swap on its own trades an LCP problem for a CLS one, because the
+       fallback and the web font take different amounts of space and every
+       line reflows at the swap. The adjusted fallback closes that gap, which
+       is the defect example 08 is about. Fix both or neither. */
+    @font-face {
+      font-family: 'Gazette fallback';
+      src: local('Georgia');
+      size-adjust: 103%;
+      ascent-override: 92%;
+      descent-override: 22%;
+    }
+
+    body { font-family: 'Gazette', 'Gazette fallback', Georgia, serif; }
+  </style>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>
