@@ -1,6 +1,7 @@
 # Core Web Vitals Checklist
 
-Diagnosis order and fix order for LCP, INP and CLS.
+Diagnosis order and fix order for LCP, INP and CLS, with eleven failing and
+corrected example pairs checked in CI and a tested field measurement script.
 
 This is not a list of performance tips. It is the order to work in, because the
 expensive mistake on a performance engagement is not applying the wrong fix, it
@@ -38,7 +39,9 @@ it before changing anything.
 | [02 LCP](docs/02-lcp.md) | The four-phase breakdown and the fix for each |
 | [03 INP](docs/03-inp.md) | Why INP is much harder than the FID it replaced, and where it fails in practice |
 | [04 CLS](docs/04-cls.md) | The six causes in order of how often they are the answer |
+| [05 What this cannot tell you](docs/05-limits.md) | Where the checks and the arithmetic stop, and what only field data can settle |
 | [Triage checklist](checklists/triage.md) | The working order for a whole engagement |
+| [Examples index](examples/README.md) | Eleven defects, each as a failing page and a corrected one |
 
 ## Thresholds
 
@@ -80,17 +83,77 @@ is useful immediately on any site you are diagnosing. Set `ENDPOINT` to collect
 properly.
 
 ```
-[CWV] LCP 3820ms (poor)
-  element         img.hero__image
-  ttfb            210 ms
-  load delay      2640 ms      <- the whole problem is here
-  load duration   740 ms
-  render delay    230 ms
+[CWV] LCP 3820ms (needs-improvement)
+  ttfb             210 ms    5%
+  load delay      2640 ms   69%   <- the whole problem is here
+  load duration    740 ms   19%
+  render delay     230 ms    6%
+  The browser found out about the resource late. Check loading="lazy" on the
+  hero, a CSS background image as the LCP element, or content injected by
+  JavaScript. Add fetchpriority="high".
+  element   img.hero__image
 ```
 
 A breakdown like that says the browser found out about the hero far too late,
 which is a `loading="lazy"` attribute or a CSS background image, not a
 compression problem.
+
+The arrow is not always there. When no phase reaches 40 percent of the total
+the report says that no single phase dominates, because naming a 30 percent
+phase as the cause is how an afternoon gets spent for no movement.
+
+3820ms is `needs-improvement`, not `poor`. The boundaries are inclusive and
+they are in one place, [`measure/attribution.mjs`](measure/attribution.mjs),
+which the thresholds table above is checked against in CI.
+
+## Examples
+
+Eleven defects, each as a failing page beside a corrected one, in
+[`examples/`](examples/). Every pair is checked in CI: a static detector
+asserts that the defect is present in `fail.html`, absent from `pass.html`,
+and that no corrected page carries any of the other ten defects.
+
+| Metric | Examples |
+|---|---|
+| **LCP** | Lazy loaded hero, CSS background hero, `@import` stylesheet chain, render blocking web font |
+| **CLS** | Unsized image, unreserved third party embed, banner injected after load, font swap into different metrics |
+| **INP** | Handler that never yields, layout read and written in the same loop, third party script blocking the head |
+
+Two of them are deliberately the same problem twice. Giving a blocking font
+`font-display: swap` fixes the LCP defect in example 04 and creates the CLS
+defect in example 08, and the corrected page for 04 therefore carries the fix
+for both. That pairing is the most common way a performance engagement moves
+a number sideways.
+
+Each detector states what finding it proves and, more usefully, what it does
+not. The checks are static: they read markup, they do not measure anything,
+and they cannot tell you whether the defect they found is costing you
+anything on real visits. [`docs/05-limits.md`](docs/05-limits.md) is the
+longer version of that caveat.
+
+## Verifying
+
+```
+npm test      # 54 tests: the attribution arithmetic, and every example pair
+npm run verify   # the example pairs and the repository invariants
+```
+
+`npm test` unit tests [`measure/attribution.mjs`](measure/attribution.mjs):
+threshold boundaries, phases summing to the metric, missing phase values
+becoming zero rather than poisoning the total, ties resolving to the upstream
+phase, and every phase the breakdown can produce having a documented next
+action.
+
+`npm run verify` runs the example pairs and the repository invariants: that
+the thresholds quoted in the table above are the thresholds the code uses,
+that every document linked from this README exists, that the generated
+examples index has not drifted from the checks it describes, and that no file
+contains an em dash or an en dash. It also asserts that the test count quoted
+two paragraphs above is the number of tests that exist, because a README that
+is checked is worth more than a README that is careful.
+
+Both run on Node 18, 20 and 22 in CI on every push to `main`. Neither needs a
+network, an API key, or a browser.
 
 ## Licence
 
