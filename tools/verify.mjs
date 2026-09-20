@@ -134,6 +134,16 @@ for (const file of testFiles) {
   declared += plain - looped + looped * checks.length;
 }
 
+// The test script names its files explicitly rather than using a glob,
+// because `node --test` did not accept glob patterns before Node 21 and this
+// repository supports 18. That makes it possible to add a test file and have
+// it silently never run, so the script is checked against the directory.
+const pkg = JSON.parse(read(join(root, 'package.json')));
+const missingFromScript = testFiles.filter((f) => !pkg.scripts.test.includes(`test/${f}`));
+assert(missingFromScript.length === 0,
+  'every test file is named in the npm test script',
+  missingFromScript.length ? `not run: ${missingFromScript.join(', ')}` : undefined);
+
 const quotedTests = /npm test\s+#\s*(\d+) tests/.exec(readme);
 assert(quotedTests !== null, 'README quotes a test count');
 if (quotedTests) {
