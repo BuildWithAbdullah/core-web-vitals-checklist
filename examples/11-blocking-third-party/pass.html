@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Blocking third party, corrected</title>
+  <link rel="stylesheet" href="/assets/site.css">
+  <!-- The connection is warmed early, which costs nothing and saves the DNS
+       and TLS round trips later. The script itself is not fetched until
+       somebody asks for the feature it provides. -->
+  <link rel="preconnect" href="https://widgets.example" crossorigin>
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <button id="open-chat" type="button">Chat to us</button>
+
+  <script>
+    // Load on interaction. Most visitors never open the chat, so most
+    // visitors never pay for it. The ones who do wait once, deliberately,
+    // at a moment when waiting is expected.
+    document.getElementById('open-chat').addEventListener('click', function loadChat() {
+      const tag = document.createElement('script');
+      tag.src = 'https://widgets.example/chat.js';
+      tag.defer = true;
+      document.head.appendChild(tag);
+    }, { once: true });
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Blocking third party, failing</title>
+  <!-- Parsing stops here. Nothing further in the document is looked at,
+       including the stylesheet and the hero image, until this script has
+       been fetched from another origin, parsed and executed. A slow response
+       from a server you do not own becomes your first paint, and the
+       execution then occupies the main thread during the window when the
+       visitor first tries to interact. -->
+  <script src="https://widgets.example/chat.js"></script>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <h1>Autumn tasting menu</h1>
+  <button id="open-chat" type="button">Chat to us</button>
+</body>
+</html>
