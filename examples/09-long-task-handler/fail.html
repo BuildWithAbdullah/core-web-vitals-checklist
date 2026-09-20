@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Long task handler, failing</title>
+</head>
+<body>
+  <button id="filter" type="button">Filter menu</button>
+  <ul id="results"></ul>
+
+  <script>
+    const rows = Array.from({ length: 8000 }, (value, index) => ({
+      id: index,
+      name: 'Dish ' + index,
+      course: index % 3
+    }));
+
+    // The handler runs to completion before the browser gets the main thread
+    // back, so nothing can paint until the last row has been scored. INP
+    // measures the gap between the click and the next paint, which means it
+    // measures this entire loop. Eight thousand rows is not a lot of data.
+    // It is enough.
+    document.getElementById('filter').addEventListener('click', () => {
+      const scored = [];
+      for (const row of rows) {
+        scored.push({ row: row, score: score(row) });
+      }
+      scored.sort((a, b) => b.score - a.score);
+      render(scored.slice(0, 50));
+    });
+
+    function score(row) {
+      let total = 0;
+      for (let i = 0; i < 400; i += 1) total += Math.sqrt(row.id + i);
+      return total;
+    }
+
+    function render(items) {
+      document.getElementById('results').textContent = items.length + ' results';
+    }
+  </script>
+</body>
+</html>

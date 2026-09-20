@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Long task handler, corrected</title>
+</head>
+<body>
+  <button id="filter" type="button">Filter menu</button>
+  <ul id="results" aria-live="polite"></ul>
+
+  <script>
+    const rows = Array.from({ length: 8000 }, (value, index) => ({
+      id: index,
+      name: 'Dish ' + index,
+      course: index % 3
+    }));
+
+    // Yielding does not make the work faster. It makes the browser able to
+    // paint in the middle of it, which is the whole of what INP measures.
+    // The total time to finish goes up slightly and the measured interaction
+    // latency falls to the length of one chunk.
+    function yieldToMain() {
+      if (globalThis.scheduler && typeof globalThis.scheduler.yield === 'function') {
+        return globalThis.scheduler.yield();
+      }
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    document.getElementById('filter').addEventListener('click', async () => {
+      // Acknowledge first, in the same frame as the click. A visible
+      // response now is worth more than a complete response in 600ms.
+      render([], 'Filtering');
+
+      const scored = [];
+      let sinceYield = 0;
+      for (const row of rows) {
+        scored.push({ row: row, score: score(row) });
+        sinceYield += 1;
+        if (sinceYield >= 500) {
+          sinceYield = 0;
+          await yieldToMain();
+        }
+      }
+      scored.sort((a, b) => b.score - a.score);
+      render(scored.slice(0, 50), 'results');
+    });
+
+    function score(row) {
+      let total = 0;
+      for (let i = 0; i < 400; i += 1) total += Math.sqrt(row.id + i);
+      return total;
+    }
+
+    function render(items, label) {
+      document.getElementById('results').textContent = items.length + ' ' + label;
+    }
+  </script>
+</body>
+</html>
