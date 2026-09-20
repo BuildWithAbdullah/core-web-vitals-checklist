@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Unsized image, failing</title>
+  <style>
+    .card__image { width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <h2>Braised short rib</h2>
+    <!-- No width, no height, no aspect-ratio. Until the bytes arrive the
+         element is zero pixels tall, so the paragraph below sits directly
+         under the heading and then jumps down the height of the image. The
+         width: 100%, height: auto rule is what makes this so common: it
+         looks like sizing and reserves nothing. -->
+    <img class="card__image" src="/media/short-rib.webp" alt="Braised short rib on a bed of polenta">
+    <p>Slow cooked for eight hours, served with soft polenta.</p>
+  </article>
+</body>
+</html>

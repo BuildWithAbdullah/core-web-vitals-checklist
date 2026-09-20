@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Unsized image, corrected</title>
+  <style>
+    /* The attributes below give the browser the ratio. These two lines keep
+       the image responsive without discarding it, which is what a bare
+       height: auto does. */
+    .card__image { width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <article class="card">
+    <h2>Braised short rib</h2>
+    <!-- Intrinsic dimensions as attributes. The browser computes the aspect
+         ratio from them before any bytes arrive and reserves exactly the
+         right box, so nothing below moves. The numbers must match the file,
+         not the rendered size. -->
+    <img class="card__image" src="/media/short-rib.webp"
+         alt="Braised short rib on a bed of polenta"
+         width="1200" height="800">
+    <p>Slow cooked for eight hours, served with soft polenta.</p>
+  </article>
+</body>
+</html>
