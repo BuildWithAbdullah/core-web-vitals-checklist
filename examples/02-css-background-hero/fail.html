@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Background hero, failing</title>
+  <style>
+    /* The image the page is judged on exists only inside a stylesheet. The
+       preload scanner reads the raw HTML bytes before CSS has been fetched,
+       so it never sees this URL. Discovery waits for the stylesheet to
+       arrive, parse and match, and the whole of that sits in LCP load delay. */
+    .hero {
+      min-height: 60vh;
+      background-image: url('/media/hero-1600.webp');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+<body>
+  <section class="hero" role="img" aria-label="Harvest table set for a tasting"></section>
+  <h1>Autumn tasting menu</h1>
+</body>
+</html>
