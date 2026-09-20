@@ -39,6 +39,10 @@ import {
   onLCP, onINP, onCLS, onTTFB, onFCP
 } from 'https://unpkg.com/web-vitals@4?module';
 
+import {
+  rate, lcpPhases, inpPhases, formatBreakdown
+} from './attribution.mjs';
+
 /* Where to send the data. A real deployment posts to an analytics endpoint.
    The default here logs a readable table so the file is useful immediately,
    with no backend, on any site you are diagnosing. */
@@ -48,7 +52,9 @@ function send(metric) {
   const body = {
     name: metric.name,
     value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
-    rating: metric.rating,            // 'good' | 'needs-improvement' | 'poor'
+    // Rated from the shared threshold table rather than the library's own
+    // field, so the report and the transported record can never disagree.
+    rating: rate(metric.name, metric.value),
     navigationType: metric.navigationType,
     attribution: metric.attribution,
     url: location.pathname,
@@ -76,15 +82,9 @@ function send(metric) {
    has a different fix, and knowing which one dominates is the entire
    diagnosis. See docs/02-lcp.md. */
 onLCP((metric) => {
-  const a = metric.attribution;
-  console.groupCollapsed(`[CWV] LCP ${Math.round(metric.value)}ms (${metric.rating})`);
-  console.log('element        ', a.target);
-  console.log('url            ', a.url);
-  console.log('ttfb           ', Math.round(a.timeToFirstByte), 'ms');
-  console.log('load delay     ', Math.round(a.resourceLoadDelay), 'ms');
-  console.log('load duration  ', Math.round(a.resourceLoadDuration), 'ms');
-  console.log('render delay   ', Math.round(a.elementRenderDelay), 'ms');
-  console.groupEnd();
+  console.log(formatBreakdown('LCP', metric.value, lcpPhases(metric.attribution)));
+  console.log('  element  ', metric.attribution.target);
+  console.log('  url      ', metric.attribution.url);
   send(metric);
 });
 
@@ -92,23 +92,18 @@ onLCP((metric) => {
    delay, processing time and presentation delay. Again, three different
    fixes. See docs/03-inp.md. */
 onINP((metric) => {
-  const a = metric.attribution;
-  console.groupCollapsed(`[CWV] INP ${Math.round(metric.value)}ms (${metric.rating})`);
-  console.log('element        ', a.interactionTarget);
-  console.log('type           ', a.interactionType);
-  console.log('input delay    ', Math.round(a.inputDelay), 'ms');
-  console.log('processing     ', Math.round(a.processingDuration), 'ms');
-  console.log('presentation   ', Math.round(a.presentationDelay), 'ms');
-  console.log('longest script ', a.longAnimationFrameEntries);
-  console.groupEnd();
+  console.log(formatBreakdown('INP', metric.value, inpPhases(metric.attribution)));
+  console.log('  element  ', metric.attribution.interactionTarget);
+  console.log('  type     ', metric.attribution.interactionType);
+  console.log('  frames   ', metric.attribution.longAnimationFrameEntries);
   send(metric);
 });
 
-/* CLS attribution names the largest shift source, which is almost always
-   enough to find it. See docs/04-cls.md. */
+/* CLS has no phases. Attribution names the largest shift source instead,
+   which is almost always enough to find it. See docs/04-cls.md. */
 onCLS((metric) => {
   const a = metric.attribution;
-  console.groupCollapsed(`[CWV] CLS ${metric.value.toFixed(3)} (${metric.rating})`);
+  console.groupCollapsed(`[CWV] CLS ${metric.value.toFixed(3)} (${rate('CLS', metric.value)})`);
   console.log('largest shift  ', a.largestShiftTarget);
   console.log('shift value    ', a.largestShiftValue?.toFixed(4));
   console.log('at             ', Math.round(a.largestShiftTime), 'ms');
