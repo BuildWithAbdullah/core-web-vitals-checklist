@@ -9,8 +9,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "test": "node --test \"test/**/*.test.mjs\"",
+    "test": "node --test test/attribution.test.mjs test/examples.test.mjs",
     "verify": "node tools/verify.mjs",
-    "check": "node --check measure/attribution.mjs"
+    "check": "node --input-type=module --check < measure/collect-web-vitals.js"
   }
 }
