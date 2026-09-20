@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lazy hero, failing</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+  <!-- The blanket "lazy load every image" rule, applied to the one image the
+       page is judged on. The browser is explicitly told this image is not
+       urgent, so the preload scanner skips it and it is requested after
+       layout. On a slow connection that single attribute is commonly two
+       seconds of LCP load delay. -->
+  <img class="hero" src="/media/hero-1600.webp" alt="Harvest table set for a tasting"
+       loading="lazy" width="1600" height="900">
+
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>

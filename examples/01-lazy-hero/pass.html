@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lazy hero, corrected</title>
+  <link rel="stylesheet" href="/assets/site.css">
+  <!-- The preload is belt and braces. fetchpriority on the element is enough
+       once the scanner can see it, but a preload also survives the element
+       being rendered by a framework rather than sitting in the HTML. -->
+  <link rel="preload" as="image" href="/media/hero-1600.webp" fetchpriority="high">
+</head>
+<body>
+  <!-- No loading attribute at all, which means eager, plus an explicit
+       priority signal. Width and height are kept so the fix for LCP does not
+       create a CLS problem on the way past. -->
+  <img class="hero" src="/media/hero-1600.webp" alt="Harvest table set for a tasting"
+       fetchpriority="high" decoding="async" width="1600" height="900">
+
+  <h1>Autumn tasting menu</h1>
+  <p>Six courses, served from six until ten, Wednesday to Sunday.</p>
+</body>
+</html>
