@@ -37,5 +37,10 @@ jobs:
       - name: Repository invariants
         run: npm run verify
 
+      # The browser entry point is the one file the tests do not import,
+      # because it talks to the DOM and pulls web-vitals over the network.
+      # It is parsed as a module from stdin rather than with `node --check`
+      # on the path, because older Node versions decide module type from the
+      # file extension there and this file is .js.
       - name: Syntax-check the browser entry point
-        run: node --check measure/collect-web-vitals.js
+        run: node --input-type=module --check < measure/collect-web-vitals.js
