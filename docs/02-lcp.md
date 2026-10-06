@@ -13,12 +13,22 @@ Get the breakdown from the attribution build, which
 [`collect-web-vitals.js`](../measure/collect-web-vitals.js) already logs, or
 from the Chrome DevTools Performance panel.
 
-| Phase | What it is | Typical share |
+| Phase | What it is | Share on a well-optimised page |
 |---|---|---|
-| Time to first byte | Server and network before any HTML arrives | 40% |
-| Resource load delay | Gap between TTFB and the browser starting to fetch the LCP resource | 0 to 25% |
-| Resource load duration | Downloading the LCP resource | 0 to 30% |
-| Element render delay | Resource downloaded, not yet painted | 0 to 30% |
+| Time to first byte | Server and network before any HTML arrives | about 40% |
+| Resource load delay | Gap between TTFB and the browser starting to fetch the LCP resource | under 10% |
+| Resource load duration | Downloading the LCP resource | about 40% |
+| Element render delay | Resource downloaded, not yet painted | under 10% |
+
+The last column is the guideline split published in web.dev's
+[Optimize LCP](https://web.dev/articles/optimize-lcp) article, not a
+measurement of typical sites. It describes the target shape: nearly all of
+the time is spent fetching the document and the LCP resource, and the two
+delays are close to zero, because a delay is time in which neither of those
+is downloading. Read a failing breakdown against that shape: on a slow page a
+load delay of 30 percent is the place to start, while a TTFB of 40 percent is
+the expected share and not by itself the cause. If LCP is comfortably under
+2.5s the proportions do not matter.
 
 Whichever phase dominates is the only one worth working on.
 
@@ -104,4 +114,6 @@ It is frequently not what people assume. A common surprise on commerce sites is
 that the LCP element is the announcement bar text or a heading, not the hero
 image everybody has been compressing.
 
-DevTools Performance panel, or the `target` property in the LCP attribution.
+DevTools Performance panel, or the `element` property in the LCP attribution.
+That is its name in web-vitals 4, which is what the collector here imports;
+version 5 renamed it to `target`.

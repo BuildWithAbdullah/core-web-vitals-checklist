@@ -35,9 +35,14 @@
    Measure the field. Use the lab to reproduce what the field tells you.
    --------------------------------------------------------------------------- */
 
+/* The attribution build has to be named by its file. The bare package URL,
+   web-vitals@4?module, resolves to the standard build, which reports the
+   value and nothing else: metric.attribution is undefined there, so the
+   first LCP callback would throw before logging anything. Self-host this
+   file in production rather than relying on a public CDN. */
 import {
   onLCP, onINP, onCLS, onTTFB, onFCP
-} from 'https://unpkg.com/web-vitals@4?module';
+} from 'https://unpkg.com/web-vitals@4/dist/web-vitals.attribution.js?module';
 
 import {
   rate, lcpPhases, inpPhases, formatBreakdown
@@ -83,7 +88,9 @@ function send(metric) {
    diagnosis. See docs/02-lcp.md. */
 onLCP((metric) => {
   console.log(formatBreakdown('LCP', metric.value, lcpPhases(metric.attribution)));
-  console.log('  element  ', metric.attribution.target);
+  // Version 4 calls this field element. Version 5 renamed it to target, so
+  // change both together if the import above moves to a newer major.
+  console.log('  element  ', metric.attribution.element);
   console.log('  url      ', metric.attribution.url);
   send(metric);
 });

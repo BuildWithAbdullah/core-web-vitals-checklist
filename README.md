@@ -134,7 +134,7 @@ longer version of that caveat.
 ## Verifying
 
 ```
-npm test      # 54 tests: the attribution arithmetic, and every example pair
+npm test      # 59 tests: the attribution arithmetic, the collector, and every example pair
 npm run verify   # the example pairs and the repository invariants
 ```
 
@@ -142,7 +142,10 @@ npm run verify   # the example pairs and the repository invariants
 threshold boundaries, phases summing to the metric, missing phase values
 becoming zero rather than poisoning the total, ties resolving to the upstream
 phase, and every phase the breakdown can produce having a documented next
-action.
+action. It also checks that the collector imports the web-vitals attribution
+build rather than the standard one, and reads only attribution fields that
+version defines. Both mistakes log `undefined` in a browser while every other
+check stays green.
 
 `npm run verify` runs the example pairs and the repository invariants: that
 the thresholds quoted in the table above are the thresholds the code uses,
