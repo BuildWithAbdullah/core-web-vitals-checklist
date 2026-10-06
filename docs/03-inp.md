@@ -46,18 +46,38 @@ Usual suspects, in the order they are usually found:
 Break up long tasks so the browser can respond between chunks:
 
 ```js
-// Yields to the browser so pending input can be handled between items.
-async function processInChunks(items, work) {
+// Prefers scheduler.yield(), which resumes ahead of other queued tasks, and
+// falls back to a macrotask everywhere it does not exist.
+function yieldToMain() {
+  if (globalThis.scheduler?.yield) return globalThis.scheduler.yield();
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+// Yields on a fixed budget, whether or not input is pending.
+async function processInChunks(items, work, chunkSize = 500) {
+  let sinceYield = 0;
   for (const item of items) {
     work(item);
-    if (navigator.scheduling?.isInputPending?.()) {
-      await new Promise((r) => setTimeout(r, 0));
+    if (++sinceYield >= chunkSize) {
+      sinceYield = 0;
+      await yieldToMain();
     }
   }
 }
 ```
 
-`scheduler.yield()` is the modern form of this where it is available.
+Yield unconditionally. A loop that yields only when
+`navigator.scheduling.isInputPending()` returns true looks more efficient and
+fails twice. That API only ever shipped in Chromium, so everywhere else the
+optional call evaluates to `undefined` and the loop never yields at all: one
+long task, exactly the defect it was meant to fix. And where it does exist it
+answers the wrong question. The frame that shows the user their click landed
+is not input, so a loop that waits for pending input before yielding still
+holds that paint back. The Chrome team's own guidance on
+[optimising long tasks](https://web.dev/articles/optimize-long-tasks) no
+longer recommends it for these reasons. The corrected page in
+[example 09](../examples/09-long-task-handler/pass.html) uses the same
+pattern as above.
 
 ## If processing duration dominates
 
