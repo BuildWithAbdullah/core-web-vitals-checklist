@@ -6,10 +6,10 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=18"
+    "node": ">=18.17.0"
   },
   "scripts": {
-    "test": "node --test test/attribution.test.mjs test/collector.test.mjs test/examples.test.mjs",
+    "test": "node --test --test-reporter=tap test/attribution.test.mjs test/collector.test.mjs test/examples.test.mjs",
     "verify": "node tools/verify.mjs",
     "check": "node --input-type=module --check < measure/collect-web-vitals.js"
   }
