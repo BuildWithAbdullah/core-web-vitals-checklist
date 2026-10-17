@@ -5,17 +5,25 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { lcpPhases, inpPhases } from '../measure/attribution.mjs';
+import { braceBody } from '../tools/html.mjs';
 
 /* collect-web-vitals.js runs in a browser and imports web-vitals from a CDN,
-   so it cannot be executed here. What can be checked without a network is
-   that it asks for the right build and reads fields that build actually
-   has. Both have been wrong before: the bare package URL loaded the standard
-   build, which has no attribution at all, and the LCP element was read
-   under its version 5 name from a version 4 import. Either mistake passes
-   every other test in this repository and logs undefined in production. */
+   so the import itself cannot be resolved here. What can be checked without
+   a network is that it asks for the right build, and that the reporting
+   code reads fields that build actually has. Both have been wrong before:
+   the bare package URL loaded the standard build, which has no attribution
+   at all, and the LCP element was read under its version 5 name from a
+   version 4 import. Either mistake passes every other test in this
+   repository and logs undefined in production.
+
+   The callbacks now live in report.mjs, which is executed by
+   test/report.test.mjs with stubs. The field names are still read out of
+   the source here, because a stub answers to any field name and would
+   never notice a typo. */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const source = readFileSync(join(root, 'measure', 'collect-web-vitals.js'), 'utf8');
+const reporting = readFileSync(join(root, 'measure', 'report.mjs'), 'utf8');
 
 /* Attribution fields per metric, copied from the type definitions shipped
    in web-vitals 4.2.4 (dist/modules/types/lcp.d.ts, inp.d.ts, cls.d.ts).
@@ -44,11 +52,16 @@ test('the collector imports the attribution build of a known major version', () 
   assert.ok(FIELDS[major], `no attribution field list recorded for web-vitals ${major}`);
 });
 
-// The body of each on<Metric>((metric) => { ... }); callback.
+// The body of each report<Metric>(metric) { ... } function, brace matched
+// rather than matched up to the first line that starts with a brace, so a
+// nested block inside the function cannot truncate it and hide a field.
 function callbackBody(metric) {
-  const match = new RegExp(`on${metric}\\(\\(metric\\) => \\{([\\s\\S]*?)\\n\\}\\);`).exec(source);
-  assert.ok(match, `collect-web-vitals.js has an on${metric} callback`);
-  return match[1];
+  const header = new RegExp(`function report${metric}\\s*\\(metric\\)\\s*\\{`).exec(reporting);
+  assert.ok(header, `report.mjs has a report${metric} function`);
+  const open = header.index + header[0].length - 1;
+  const body = braceBody(reporting, open);
+  assert.ok(body, `report${metric} has an unbalanced body`);
+  return body;
 }
 
 function fieldsRead(body) {
@@ -69,8 +82,6 @@ function assertFieldsExist(metric) {
   assert.deepEqual(unknown, [], `fields not in web-vitals ${major} ${metric} attribution`);
 }
 
-// Declared one per metric rather than in a loop, because tools/verify.mjs
-// counts an indented test() as one declared per example pair.
 test('every LCP attribution field the collector logs exists in that version', () => assertFieldsExist('LCP'));
 test('every INP attribution field the collector logs exists in that version', () => assertFieldsExist('INP'));
 test('every CLS attribution field the collector logs exists in that version', () => assertFieldsExist('CLS'));
