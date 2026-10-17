@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Reservations</title>
+</head>
+<body>
+  <h1>Reservations</h1>
+  <ul id="slots">
+    <li><button class="slot">18:00</button></li>
+    <li><button class="slot">20:30</button></li>
+  </ul>
+
+  <script type="application/json" id="availability">
+  {"generated":"placeholder","note":"A real payload of this shape runs to several thousand characters, and it is parsed synchronously during load, which is the moment the main thread is most contended and the moment somebody is most likely to tap something. The padding below stands in for the rest of it so the fixture is large enough to be reported without shipping a genuinely large file.","rows":["0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000","1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111","2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222","3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333","4444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444444","5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555","6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666","7777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777"]}
+  </script>
+
+  <script>
+    // A synchronous request. The thread stops until the response arrives:
+    // nothing paints and nothing scrolls.
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/api/availability', false);
+    xhr.send();
+
+    // One listener per element rather than one on the list.
+    document.querySelectorAll('.slot').forEach(function (button) {
+      button.addEventListener('click', function () {
+        // A blocking dialog. The time the reader spends on it is recorded
+        // as the time this page took to respond.
+        confirm('Hold this table for ten minutes?');
+      });
+    });
+
+    // Scroll blocking and not declared passive, so the browser has to wait
+    // to find out whether the gesture will be cancelled.
+    document.addEventListener('touchstart', function (event) {
+      document.title = 'Reservations';
+    });
+
+    // Fires many times a second and does work on every one of them.
+    window.addEventListener('scroll', function () {
+      document.body.dataset.scrolled = String(window.scrollY > 100);
+    });
+
+    document.write('<span hidden>legacy tag</span>');
+  </script>
+</body>
+</html>

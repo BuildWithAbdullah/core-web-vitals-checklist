@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Booking</title>
+  <style>
+    /* Animating height lays the page out again on every frame, and
+       everything below the panel moves with it. */
+    .panel {
+      height: 0;
+      overflow: hidden;
+      transition: height 240ms ease-out;
+    }
+    .panel.is-open { height: 320px; }
+  </style>
+</head>
+<body>
+  <h1>Booking</h1>
+  <div class="panel"><p>Tables for two to eight.</p></div>
+</body>
+</html>

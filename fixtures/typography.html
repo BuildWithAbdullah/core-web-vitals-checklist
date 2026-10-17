@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Notes</title>
+  <style>
+    /* Optional with no preload. The font gets a hundred millisecond window
+       and is then abandoned for the whole navigation, so on most first
+       visits it is downloaded, not used, and applied on the next page. */
+    @font-face {
+      font-family: 'Gazette';
+      src: url('/assets/gazette.woff2') format('woff2');
+      font-display: optional;
+    }
+
+    /* One family and nothing to fall back to, so the browser renders in its
+       own default while the file is in flight. */
+    body { font-family: 'Gazette'; }
+  </style>
+</head>
+<body>
+  <h1>Notes from the pass</h1>
+</body>
+</html>

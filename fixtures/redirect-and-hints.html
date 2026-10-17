@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Seasonal menu</title>
+
+  <!-- A client side redirect. The browser loads this document in order to be
+       told to load another one, and the whole first request lands in time to
+       first byte. -->
+  <meta http-equiv="refresh" content="0; url=/menu/autumn">
+
+  <!-- A preload with no as. The browser cannot know the priority or the
+       accept header, so it commonly fetches the file twice. -->
+  <link rel="preload" href="/assets/menu.css">
+
+  <!-- A font preload with no crossorigin. Fonts are fetched in anonymous
+       CORS mode whatever their origin, so this is a different request from
+       the one the stylesheet will make and the file arrives twice. -->
+  <link rel="preload" as="font" type="font/woff2" href="/assets/gazette.woff2">
+
+  <link rel="preconnect" href="https://fonts.example">
+  <link rel="stylesheet" href="https://fonts.example/gazette.css">
+</head>
+<body>
+  <h1>Seasonal menu</h1>
+  <p>Served from noon until late.</p>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Wine list</title>
+
+  <!-- A print stylesheet with no media attribute blocks the first paint,
+       because the browser cannot know every rule inside it is wrapped in a
+       print query until it has downloaded and parsed the file. -->
+  <link rel="stylesheet" href="/assets/print.css">
+
+  <style>
+    /* The anti-flicker snippet. The largest contentful paint now waits for
+       whichever script clears this, however early everything else finished. */
+    body { opacity: 0; }
+  </style>
+  <script>
+    setTimeout(function () {
+      document.body.style.opacity = '1';
+    }, 2000);
+  </script>
+</head>
+<body>
+  <h1>Wine list</h1>
+</body>
+</html>

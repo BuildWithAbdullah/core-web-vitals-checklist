@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>The kitchen</title>
+  <style>
+    .intro { max-width: 60ch; }
+  </style>
+</head>
+<body>
+  <!-- Lazy and unsized at once. The image is fetched late and occupies no
+       space while it waits, so the shift lands later than it otherwise
+       would and more of the page has been read by then. -->
+  <img class="pass-through" src="/media/kitchen.jpg" alt="The pass at service" loading="lazy">
+
+  <p class="intro">A short film about the kitchen.</p>
+
+  <!-- Neither dimensions nor a poster, so it collapses to nothing until
+       metadata arrives. -->
+  <video src="/media/service.mp4" controls></video>
+
+  <!-- Named as a slot and given no height anywhere. -->
+  <div class="promo-banner"></div>
+</body>
+</html>

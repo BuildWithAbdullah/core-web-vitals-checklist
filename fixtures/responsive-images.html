@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Dining room</title>
+  <style>
+    .hero { width: 100%; aspect-ratio: 3 / 2; }
+  </style>
+</head>
+<body>
+  <!-- Width descriptors with no sizes attribute. The browser assumes the
+       image is the full width of the viewport and picks the candidate for
+       that, which on a half width image is one step too large every time.
+       The only format offered is JPEG. -->
+  <img class="hero" src="/media/room-1600.jpg"
+       srcset="/media/room-800.jpg 800w, /media/room-1600.jpg 1600w, /media/room-2400.jpg 2400w"
+       alt="The dining room at dusk" fetchpriority="high">
+  <h1>The dining room</h1>
+</body>
+</html>

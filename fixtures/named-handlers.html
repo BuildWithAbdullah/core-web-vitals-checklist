@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Menu board</title>
+</head>
+<body>
+  <h1>Menu board</h1>
+  <script>
+    function cancelZoom(event) {
+      event.preventDefault();
+    }
+
+    function paintScrollState() {
+      document.body.dataset.scrolled = String(window.scrollY > 100);
+    }
+
+    // A named callback, so there is no inline body here at all. This is the
+    // shape that desynchronised the event list from the body list when the
+    // two were paired by position: every listener after this one read the
+    // body of the listener before it.
+    document.addEventListener('wheel', cancelZoom);
+
+    // Throttled to a frame, so this one is not a finding. Under the old
+    // pairing it was reported, because it was reading the body of a
+    // listener that does not have one.
+    window.addEventListener('scroll', function () {
+      requestAnimationFrame(paintScrollState);
+    });
+  </script>
+</body>
+</html>

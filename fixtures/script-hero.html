@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gallery</title>
+  <style>
+    .shot { width: 100%; aspect-ratio: 4 / 3; }
+  </style>
+</head>
+<body>
+  <h1>Gallery</h1>
+  <img class="shot" alt="The terrace in summer" fetchpriority="high"
+       srcset="/media/terrace-800.avif 800w, /media/terrace-1600.avif 1600w" sizes="100vw">
+  <script>
+    // The source is not in the markup, so the preload scanner cannot
+    // request it. It is discovered after this script has downloaded,
+    // parsed and run.
+    document.querySelector('.shot').src = '/media/terrace-1600.avif';
+  </script>
+</body>
+</html>

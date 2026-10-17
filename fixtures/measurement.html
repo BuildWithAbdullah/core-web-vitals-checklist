@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Private dining</title>
+</head>
+<body>
+  <h1>Private dining</h1>
+
+  <!-- Collection is here, which is further than most sites get, but it is
+       the standard build. It reports the value and cannot report which
+       phase of the value is the problem, which is the only part that says
+       what to do next. -->
+  <script type="module">
+    import { onLCP, onINP, onCLS } from 'https://unpkg.com/web-vitals@4?module';
+    onLCP(console.log);
+    onINP(console.log);
+    onCLS(console.log);
+  </script>
+</body>
+</html>
