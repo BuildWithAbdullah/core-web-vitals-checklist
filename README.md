@@ -1,12 +1,13 @@
 # Core Web Vitals Checklist
 
-Diagnosis order and fix order for LCP, INP and CLS, with eleven failing and
-corrected example pairs checked in CI and a tested field measurement script.
+Diagnosis order and fix order for LCP, INP and CLS.
+A static audit of 37 catalogued findings, 11 example pairs showing a defect
+beside its repair, and a test that asserts what none of it can tell you.
 
-This is not a list of performance tips. It is the order to work in, because the
-expensive mistake on a performance engagement is not applying the wrong fix, it
-is applying a reasonable fix to the wrong phase of the wrong metric and
-producing no movement at all.
+This is not a list of performance tips. It is the order to work in, because
+the expensive mistake on a performance engagement is not applying the wrong
+fix, it is applying a reasonable fix to the wrong phase of the wrong metric
+and producing no movement at all.
 
 ## The one idea
 
@@ -23,6 +24,26 @@ work.
 breakdown for all three metrics using the web-vitals attribution build. Deploy
 it before changing anything.
 
+## The second idea, which is the one this repository argues for
+
+**A static finding is a hypothesis. It is never the answer.**
+
+Every finding in the catalogue carries two sentences: what it proves, and what
+it does not. The second one is the one that matters, and in most repositories
+it is a paragraph near the bottom that nobody checks.
+
+Here it is asserted. [`test/gap.test.mjs`](test/gap.test.mjs) takes every
+finding that names a phase and proves, through the real arithmetic in
+[`measure/attribution.mjs`](measure/attribution.mjs), that the phase it names
+can fail to be the phase that dominates. The same page, the same finding, two
+different sets of visits, two different next actions. It asserts the gap in
+the other direction too: a dominant phase narrows the cause to a set of
+candidate findings rather than to one, and the single phase in the catalogue
+where it narrows to exactly one is declared as an exception and checked.
+
+That is the whole argument for measuring first, and it is the thing a client
+is actually buying when they ask what is wrong with their site.
+
 ## Diagnosis order
 
 | Metric | Phases | Where the fix lives |
@@ -35,13 +56,14 @@ it before changing anything.
 
 | Document | What it covers |
 |---|---|
+| [Finding catalogue](docs/CATALOGUE.md) | Every finding the audit can report, what each proves, and what each does not |
 | [01 Field data and lab data](docs/01-field-vs-lab.md) | Why a site scores 100 in Lighthouse and fails its assessment, and the 28 day lag to set expectations against |
 | [02 LCP](docs/02-lcp.md) | The four-phase breakdown and the fix for each |
 | [03 INP](docs/03-inp.md) | Why INP is much harder than the FID it replaced, and where it fails in practice |
 | [04 CLS](docs/04-cls.md) | The six causes in order of how often they are the answer |
 | [05 What this cannot tell you](docs/05-limits.md) | Where the checks and the arithmetic stop, and what only field data can settle |
 | [Triage checklist](checklists/triage.md) | The working order for a whole engagement |
-| [Examples index](examples/README.md) | Eleven defects, each as a failing page and a corrected one |
+| [Examples index](examples/README.md) | The defect in each pair and what the corrected page still reports |
 
 ## Thresholds
 
@@ -69,6 +91,31 @@ hardware. Improving the median can leave the assessment untouched.
 before the work starts, or a client checking Search Console the next morning
 will reasonably conclude nothing happened. Your own RUM, filtered to post-deploy
 visits, is how you show the improvement in the meantime.
+
+## Auditing a page
+
+```
+node tools/audit-page.mjs fixtures/media-elements.html
+```
+
+It reads a file and prints what the catalogue reports, with the limits
+paragraph beside every finding rather than behind a flag. It does not fetch a
+URL and it never will, because the moment this needs a network it stops being
+something you can run on a saved page with no connection.
+
+```
+CLS  cls-layout-property-animated
+  A transition or animation runs on a layout property
+  where       layout shift
+  evidence    .panel declares transition: height 240ms ease-out
+  proves      Animating width, height, top, left or a margin makes the browser
+              lay the page out again on every frame.
+  cannot say  That the shift counts. Layout shifts within five hundred
+              milliseconds of a user interaction are excluded from the score.
+```
+
+A page that reports nothing has not been given a clean bill of health. It has
+been read by a scanner that does not run it.
 
 ## Measuring
 
@@ -106,12 +153,35 @@ phase as the cause is how an afternoon gets spent for no movement.
 they are in one place, [`measure/attribution.mjs`](measure/attribution.mjs),
 which the thresholds table above is checked against in CI.
 
+The browser entry point is wiring and nothing else. The rating, the phase
+arithmetic, the payload shape and the choice of transport all live in
+[`measure/report.mjs`](measure/report.mjs), which is driven by stubs in the
+test suite, and [`tools/check-entry.mjs`](tools/check-entry.mjs) fails the
+build if any of it moves back into the file that imports a browser. A file
+that can only be syntax checked should not be a file worth checking.
+
+## The catalogue
+
+There are 37 catalogued findings across 34 rules, listed in full in
+[`docs/CATALOGUE.md`](docs/CATALOGUE.md), each filed under the metric and
+the phase it would move. Every one of them is observed firing on a real page
+in CI, and the verifier asserts the set of observed findings against the
+catalogue in both directions, so a finding cannot sit in the list having never
+fired and a rule cannot start reporting something nobody declared.
+
+The rules never see markup. [`lib/collect.mjs`](lib/collect.mjs) reads the
+document and decides nothing; everything under [`lib/rules/`](lib/rules/)
+decides everything and has never seen a document. The verifier fails a rule
+file that reaches for the raw text or for a DOM. That split is why the rules
+can be driven with plain objects, and four of the defects fixed while this was
+being written were found by writing those tests.
+
 ## Examples
 
-Eleven defects, each as a failing page beside a corrected one, in
-[`examples/`](examples/). Every pair is checked in CI: a static detector
-asserts that the defect is present in `fail.html`, absent from `pass.html`,
-and that no corrected page carries any of the other ten defects.
+11 example pairs, each a failing page beside a corrected one, in
+[`examples/`](examples/). Both sides are audited against the whole catalogue
+and compared as a set against a declaration in
+[`lib/pairs.mjs`](lib/pairs.mjs).
 
 | Metric | Examples |
 |---|---|
@@ -119,44 +189,54 @@ and that no corrected page carries any of the other ten defects.
 | **CLS** | Unsized image, unreserved third party embed, banner injected after load, font swap into different metrics |
 | **INP** | Handler that never yields, layout read and written in the same loop, third party script blocking the head |
 
-Two of them are deliberately the same problem twice. Giving a blocking font
+**The corrected pages are not clean, and the repository says so in an
+assertion rather than a footnote.** Each pair declares the exact set of
+findings that survives its repair. The corrected page in example 01 still
+offers one image candidate to every device. The corrected page in example 02
+reports a finding the failing page could not, because moving a hero out of a
+stylesheet and into an image element is what gives a rule about images
+something to look at. And every corrected page in the repository still reports
+`method-no-field-measurement`, because not one of them measures anything, which
+is the argument of this README standing in its own test output.
+
+Two pairs are deliberately the same problem twice. Giving a blocking font
 `font-display: swap` fixes the LCP defect in example 04 and creates the CLS
 defect in example 08, and the corrected page for 04 therefore carries the fix
-for both. That pairing is the most common way a performance engagement moves
-a number sideways.
+for both.
 
-Each detector states what finding it proves and, more usefully, what it does
-not. The checks are static: they read markup, they do not measure anything,
-and they cannot tell you whether the defect they found is costing you
-anything on real visits. [`docs/05-limits.md`](docs/05-limits.md) is the
-longer version of that caveat.
+Beyond the pairs there are 10 fixtures, which exist because a catalogue whose
+entries are only exercised by the examples written alongside them is a
+catalogue in which most entries have never fired. 22 of the findings here are
+reached only by a fixture, and four of the defects found while building this
+were in rules the example pairs never touch.
 
 ## Verifying
 
 ```
-npm test      # 59 tests: the attribution arithmetic, the collector, and every example pair
-npm run verify   # the example pairs and the repository invariants
+npm test        # 127 tests
+npm run verify  # 171 repository assertions over the catalogue, the pairs and the fixtures
+npm run count   # runs the suite and checks the test count above is the real one
+npm run check   # the browser entry point is wiring only
 ```
 
-`npm test` unit tests [`measure/attribution.mjs`](measure/attribution.mjs):
-threshold boundaries, phases summing to the metric, missing phase values
-becoming zero rather than poisoning the total, ties resolving to the upstream
-phase, and every phase the breakdown can produce having a documented next
-action. It also checks that the collector imports the web-vitals attribution
-build rather than the standard one, and reads only attribution fields that
-version defines. Both mistakes log `undefined` in a browser while every other
-check stays green.
+`npm test` covers the attribution arithmetic, the reporter, the collector, the
+rules, and the gap between the two halves. `npm run verify` asserts the
+repository invariants: that every catalogued finding has fired, that every pair
+and fixture reports exactly its declared set in both directions, that the rules
+have stayed out of the markup, that the thresholds quoted above are the
+thresholds the code uses, that every generated file matches its source, and
+that no file contains an em dash or an en dash.
 
-`npm run verify` runs the example pairs and the repository invariants: that
-the thresholds quoted in the table above are the thresholds the code uses,
-that every document linked from this README exists, that the generated
-examples index has not drifted from the checks it describes, and that no file
-contains an em dash or an en dash. It also asserts that the test count quoted
-two paragraphs above is the number of tests that exist, because a README that
-is checked is worth more than a README that is careful.
+The last of the 171 repository assertions is that the number printed beside
+the command is the number of assertions that ran, counting itself. The same
+holds for the 127 tests: `npm run count` reads them from the structured event
+stream that `node:test` emits rather than from reporter output, because
+reporter output changes between Node versions and a counter that parses it is
+a counter with an expiry date.
 
-Both run on Node 18, 20 and 22 in CI on every push to `main`. Neither needs a
-network, an API key, or a browser.
+Everything runs on Node 20, 22 and 24 in CI on every push to `main`, with a
+separate job that installs on the declared engines floor exactly. Nothing here
+needs a network, an API key, a browser, or a single dependency.
 
 ## Licence
 
