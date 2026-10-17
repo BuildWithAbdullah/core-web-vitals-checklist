@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: ['18', '20', '22']
+        node: ['20', '22', '24']
 
     steps:
       - uses: actions/checkout@v7
@@ -31,16 +31,96 @@ jobs:
           fi
           echo "No dependencies, as intended."
 
-      - name: Unit tests and example pairs
+      - name: Unit tests, rules, pairs, fixtures and the gap
         run: npm test
 
       - name: Repository invariants
         run: npm run verify
 
-      # The browser entry point is the one file the tests do not import,
-      # because it talks to the DOM and pulls web-vitals over the network.
-      # It is parsed as a module from stdin rather than with `node --check`
-      # on the path, because older Node versions decide module type from the
-      # file extension there and this file is .js.
+      # Counted from the structured event stream rather than from reporter
+      # output, because node --test prints TAP on 20 and 22 and the spec
+      # reporter on 24 even when piped. A counter that parses the printed
+      # lines is a counter with an expiry date.
+      - name: The test count in the README is the real one
+        run: npm run count
+
+      - name: The browser entry point is wiring only
+        run: npm run check
+
+      # The one file the tests do not import, because it talks to the DOM
+      # and pulls web-vitals over the network. Parsed as a module from
+      # stdin rather than with node --check on the path, because older Node
+      # decides module type from the file extension there and this file is
+      # .js.
       - name: Syntax-check the browser entry point
         run: node --input-type=module --check < measure/collect-web-vitals.js
+
+      - name: The audit command runs on a real page
+        run: node tools/audit-page.mjs fixtures/media-elements.html
+
+  engines:
+    # The declared floor, installed exactly, with the engines field enforced
+    # rather than advisory. A floor nobody runs is a guess, and this
+    # repository has shipped a declared floor that the package could not
+    # actually install on before.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read the declared floor
+        id: floor
+        run: |
+          floor=$(node -p "require('./package.json').engines.node.replace(/[^0-9.]/g, '')")
+          echo "version=$floor" >> "$GITHUB_OUTPUT"
+          echo "Declared floor: $floor"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ steps.floor.outputs.version }}
+
+      - name: Install with the engines field enforced
+        run: npm install --engine-strict
+
+      - name: The suite runs on the floor, not only above it
+        run: |
+          node --version
+          npm test
+          npm run verify
+          npm run count
+          npm run check
+
+      - name: Leave no lockfile behind
+        run: rm -f package-lock.json
+
+  generated:
+    # Both generated files are regenerated here and compared against the
+    # copies in the repository.
+    #
+    # Generated with node directly and never through npm run. `npm run`
+    # writes its own banner to stdout, so redirecting the output of a script
+    # into a file captures two lines of npm before the content. It passes
+    # locally, where the author runs the script directly, and fails here for
+    # a reason that looks like nothing to do with npm.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Regenerate the finding catalogue
+        run: node tools/catalogue.mjs
+
+      - name: Regenerate the examples index
+        run: node tools/verify.mjs --write > /dev/null
+
+      - name: Nothing drifted
+        run: |
+          if ! git diff --exit-code -- docs/CATALOGUE.md examples/README.md; then
+            echo ""
+            echo "A generated file is out of date. Run:"
+            echo "  node tools/catalogue.mjs"
+            echo "  node tools/verify.mjs --write"
+            exit 1
+          fi
+          echo "Both generated files match their source."
