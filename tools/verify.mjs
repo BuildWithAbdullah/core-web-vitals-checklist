@@ -231,10 +231,16 @@ const generated = [
 
 for (const [path, content, command] of generated) {
   const name = relative(root, path);
+  /* --write regenerates the file and then asserts it anyway, rather than
+     writing and moving on. Skipping the assertion made --write produce two
+     fewer assertions than a plain run, which made the self-referential
+     count below disagree with the README in write mode only, so the
+     generated-files job in CI failed on a repository with nothing wrong
+     with it. The two modes have to make the same assertions or the number
+     printed at the bottom means two different things. */
   if (write) {
     writeFileSync(path, content);
     console.log(`Wrote ${name}`);
-    continue;
   }
   const current = existsSync(path) ? read(path) : null;
   assert(current === content, `${name} is up to date with its source`,
